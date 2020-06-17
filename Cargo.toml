@@ -1,0 +1,16 @@
+[package]
+name = "yeelight-cli"
+version = "0.1.0"
+authors = ["Leixb <abone9999@gmail.com>"]
+edition = "2018"
+description = "Rust CLI to control yeelight WiFi Bulbs"
+documentation = "https://docs.rs/yeelight-cli"
+readme = "./README.md"
+repository = "https://github.com/leixb/yeelight-cli"
+license = "MIT"
+keywords = ["yeelight", "iot", "cli"]
+categories = ["command-line-interface"]
+
+[dependencies]
+yeelight = { path = "../yeelight", version = "0.2.2", features = ["from-str"]}
+structopt = "0.3.15"
