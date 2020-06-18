@@ -1,9 +1,15 @@
 use yeelight;
 
-use structopt::{StructOpt, clap::{AppSettings, ArgGroup}};
+use structopt::{
+    clap::{AppSettings, ArgGroup},
+    StructOpt,
+};
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "yeelight-cli", about = "A CLI to control your Yeelight smart lights.")]
+#[structopt(
+    name = "yeelight-cli",
+    about = "A CLI to control your Yeelight smart lights."
+)]
 #[structopt(global_setting = AppSettings::ColoredHelp)]
 struct Options {
     #[structopt(env = "YEELIGHT_ADDR")]
@@ -17,10 +23,14 @@ struct Options {
 #[derive(Debug, StructOpt)]
 enum Command {
     #[structopt(about = "Get properties")]
-    Get { properties: Vec<yeelight::Property> },
+    Get {
+        #[structopt(possible_values = &yeelight::Property::variants(), case_insensitive = true)]
+        #[structopt(required = true)]
+        properties: Vec<yeelight::Property>,
+    },
     #[structopt(about = "Toggle light")]
     #[structopt(group = ArgGroup::with_name("light"))]
-    Toggle{
+    Toggle {
         #[structopt(long, group = "light")]
         dev: bool,
         #[structopt(long, group = "light")]
@@ -28,10 +38,12 @@ enum Command {
     },
     #[structopt(about = "Turn on light")]
     On {
+        #[structopt(possible_values = &yeelight::Effect::variants(), case_insensitive = true)]
         #[structopt(short, long, default_value = "Smooth")]
         effect: yeelight::Effect,
         #[structopt(short, long, default_value = "500")]
         duration: u64,
+        #[structopt(possible_values = &yeelight::Mode::variants(), case_insensitive = true)]
         #[structopt(short, long, default_value = "Normal")]
         mode: yeelight::Mode,
         #[structopt(long)]
@@ -39,10 +51,12 @@ enum Command {
     },
     #[structopt(about = "Turn off light")]
     Off {
+        #[structopt(possible_values = &yeelight::Effect::variants(), case_insensitive = true)]
         #[structopt(short, long, default_value = "Smooth")]
         effect: yeelight::Effect,
         #[structopt(short, long, default_value = "500")]
         duration: u64,
+        #[structopt(possible_values = &yeelight::Mode::variants(), case_insensitive = true)]
         #[structopt(short, long, default_value = "Normal")]
         mode: yeelight::Mode,
         #[structopt(long)]
@@ -58,6 +72,7 @@ enum Command {
     Set {
         #[structopt(flatten)]
         property: Prop,
+        #[structopt(possible_values = &yeelight::Effect::variants(), case_insensitive = true)]
         #[structopt(short, long, default_value = "Smooth")]
         effect: yeelight::Effect,
         #[structopt(short, long, default_value = "500")]
@@ -68,19 +83,22 @@ enum Command {
         expression: yeelight::FlowExpresion,
         #[structopt(default_value = "0")]
         count: u8,
+        #[structopt(possible_values = &yeelight::CfAction::variants(), case_insensitive = true)]
         #[structopt(default_value = "Recover")]
         action: yeelight::CfAction,
         #[structopt(long)]
         bg: bool,
     },
     #[structopt(about = "Stop color flow")]
-    FlowStop{
+    FlowStop {
         #[structopt(long)]
         bg: bool,
     },
     #[structopt(about = "Adjust properties (Bright/CT/Color) (increase/decrease/circle)")]
     Adjust {
+        #[structopt(possible_values = &yeelight::Prop::variants(), case_insensitive = true)]
         property: yeelight::Prop,
+        #[structopt(possible_values = &yeelight::AdjustAction::variants(), case_insensitive = true)]
         action: yeelight::AdjustAction,
         #[structopt(long)]
         bg: bool,
@@ -88,6 +106,7 @@ enum Command {
     #[structopt(about = "Adjust properties (Bright/CT/Color) with perentage (-100~100)")]
     #[structopt(setting = AppSettings::AllowNegativeNumbers)]
     AdjustPercent {
+        #[structopt(possible_values = &yeelight::Prop::variants(), case_insensitive = true)]
         property: yeelight::Prop,
         percent: i8,
         #[structopt(default_value = "500")]
@@ -104,7 +123,9 @@ enum Command {
 #[derive(Debug, StructOpt)]
 enum Prop {
     Power {
+        #[structopt(possible_values = &yeelight::Power::variants(), case_insensitive = true)]
         power: yeelight::Power,
+        #[structopt(possible_values = &yeelight::Mode::variants(), case_insensitive = true)]
         #[structopt(default_value = "Normal")]
         mode: yeelight::Mode,
         #[structopt(long)]
@@ -136,6 +157,7 @@ enum Prop {
         name: String,
     },
     Scene {
+        #[structopt(possible_values = &yeelight::Class::variants(), case_insensitive = true)]
         class: yeelight::Class,
         val1: u64,
         #[structopt(default_value = "100")]
