@@ -10,6 +10,8 @@ struct Options {
     port: u16,
     #[structopt(subcommand)]
     subcommand: Command,
+    #[structopt(long)]
+    bg: bool,
 }
 
 #[derive(Debug, StructOpt)]
@@ -119,29 +121,33 @@ fn main() {
 
     let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port).unwrap();
 
+    let bg = opt.bg;
+
     let response = match opt.subcommand {
-        Command::Toggle => bulb.toggle(),
+        Command::Toggle => bulb.ch_toggle(bg),
         Command::On {
             effect,
             duration,
             mode,
-        } => bulb.set_power(yeelight::Power::On, effect, duration, mode),
+        } => bulb.ch_set_power(bg, yeelight::Power::On, effect, duration, mode),
         Command::Off {
             effect,
             duration,
             mode,
-        } => bulb.set_power(yeelight::Power::Off, effect, duration, mode),
+        } => bulb.ch_set_power(bg, yeelight::Power::Off, effect, duration, mode),
         Command::Get { properties } => bulb.get_prop(&yeelight::Properties(properties)),
         Command::Set {
             property,
             effect,
             duration,
         } => match property {
-            Prop::Power { power, mode } => bulb.set_power(power, effect, duration, mode),
-            Prop::CT { color_temperature } => bulb.set_ct_abx(color_temperature, effect, duration),
-            Prop::RGB { rgb_value } => bulb.set_rgb(rgb_value, effect, duration),
-            Prop::HSV { hue, sat } => bulb.set_hsv(hue, sat, effect, duration),
-            Prop::Bright { brightness } => bulb.set_bright(brightness, effect, duration),
+            Prop::Power { power, mode } => bulb.ch_set_power(bg, power, effect, duration, mode),
+            Prop::CT { color_temperature } => {
+                bulb.ch_set_ct_abx(bg, color_temperature, effect, duration)
+            }
+            Prop::RGB { rgb_value } => bulb.ch_set_rgb(bg, rgb_value, effect, duration),
+            Prop::HSV { hue, sat } => bulb.ch_set_hsv(bg, hue, sat, effect, duration),
+            Prop::Bright { brightness } => bulb.ch_set_bright(bg, brightness, effect, duration),
             Prop::Name { name } => bulb.set_name(&name),
             Prop::Scene {
                 class,
@@ -149,7 +155,7 @@ fn main() {
                 val2,
                 val3,
             } => bulb.set_scene(class, val1, val2, val3),
-            Prop::Default => bulb.set_default(),
+            Prop::Default => bulb.ch_set_default(bg),
         },
         Command::Timer { minutes } => bulb.cron_add(yeelight::CronType::Off, minutes),
         Command::TimerClear => bulb.cron_del(yeelight::CronType::Off),
@@ -158,17 +164,17 @@ fn main() {
             count,
             action,
             expression,
-        } => bulb.start_cf(count, action, expression),
-        Command::FlowStop => bulb.stop_cf(),
-        Command::Adjust { action, property } => bulb.set_adjust(action, property),
+        } => bulb.ch_start_cf(bg, count, action, expression),
+        Command::FlowStop => bulb.ch_stop_cf(bg),
+        Command::Adjust { action, property } => bulb.ch_set_adjust(bg, action, property),
         Command::AdjustPercent {
             property,
             percent,
             duration,
         } => match property {
-            yeelight::Prop::Bright => bulb.adjust_bright(percent, duration),
-            yeelight::Prop::Color => bulb.adjust_color(percent, duration),
-            yeelight::Prop::CT => bulb.adjust_ct(percent, duration),
+            yeelight::Prop::Bright => bulb.ch_adjust_bright(bg, percent, duration),
+            yeelight::Prop::Color => bulb.ch_adjust_color(bg, percent, duration),
+            yeelight::Prop::CT => bulb.ch_adjust_ct(bg, percent, duration),
         },
         Command::MusicConnect { host, port } => {
             bulb.set_music(yeelight::MusicAction::On, &host, port)
