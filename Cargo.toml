@@ -12,5 +12,5 @@ keywords = ["yeelight", "iot", "cli"]
 categories = ["command-line-interface"]
 
 [dependencies]
-yeelight = { path = "../yeelight", features = ["from-str", "chooser"]}
+yeelight = { path = "../yeelight", version = "0.2.3", features = ["from-str"]}
 structopt = "0.3.15"
