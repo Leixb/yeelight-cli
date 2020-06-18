@@ -1,9 +1,10 @@
 use yeelight;
 
-use structopt::StructOpt;
+use structopt::{StructOpt, clap::{AppSettings, ArgGroup}};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "yeelight-cli", about = "A CLI to control your Yeelight smart lights.")]
+#[structopt(global_setting = AppSettings::ColoredHelp)]
 struct Options {
     #[structopt(env = "YEELIGHT_ADDR")]
     address: String,
@@ -18,7 +19,7 @@ enum Command {
     #[structopt(about = "Get properties")]
     Get { properties: Vec<yeelight::Property> },
     #[structopt(about = "Toggle light")]
-    #[structopt(group = structopt::clap::ArgGroup::with_name("light"))]
+    #[structopt(group = ArgGroup::with_name("light"))]
     Toggle{
         #[structopt(long, group = "light")]
         dev: bool,
@@ -85,7 +86,7 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Adjust properties (Bright/CT/Color) with perentage (-100~100)")]
-    #[structopt(setting = structopt::clap::AppSettings::AllowNegativeNumbers)]
+    #[structopt(setting = AppSettings::AllowNegativeNumbers)]
     AdjustPercent {
         property: yeelight::Prop,
         percent: i8,
