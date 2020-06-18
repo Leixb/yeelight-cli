@@ -3,7 +3,7 @@ use yeelight;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "yeelight-cli", about = "An CLI to control your Yeelight smart lights.")]
+#[structopt(name = "yeelight-cli", about = "A CLI to control your Yeelight smart lights.")]
 struct Options {
     #[structopt(env = "YEELIGHT_ADDR")]
     address: String,
