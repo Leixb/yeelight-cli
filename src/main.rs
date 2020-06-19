@@ -246,9 +246,9 @@ fn main() {
             duration,
             bg,
         } => match property {
-            yeelight::Prop::Bright => sel_bg!(bulb.adjust_bright(percent, duration) || adjust_bright if bg),
-            yeelight::Prop::Color => sel_bg!(bulb.adjust_color(percent, duration) || adjust_color if bg),
-            yeelight::Prop::CT => sel_bg!(bulb.adjust_ct(percent, duration) || adjust_ct if bg),
+            yeelight::Prop::Bright => sel_bg!(bulb.adjust_bright(percent, duration) || bg_adjust_bright if bg),
+            yeelight::Prop::Color => sel_bg!(bulb.adjust_color(percent, duration) || bg_adjust_color if bg),
+            yeelight::Prop::CT => sel_bg!(bulb.adjust_ct(percent, duration) || bg_adjust_ct if bg),
         },
         Command::MusicConnect { host, port } => {
             bulb.set_music(yeelight::MusicAction::On, yeelight::QuotedString(host), port)
