@@ -35,6 +35,7 @@ SUBCOMMANDS:
     music-stop        Stop music mode
     off               Turn off light
     on                Turn on light
+    preset            Presets
     set               Set values
     timer             Start timer
     timer-clear       Clear current timer

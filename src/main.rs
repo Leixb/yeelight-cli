@@ -1,4 +1,4 @@
-use yeelight;
+mod presets;
 
 use structopt::{
     clap::{AppSettings, ArgGroup},
@@ -118,6 +118,11 @@ enum Command {
     MusicConnect { host: String, port: u32 },
     #[structopt(about = "Stop music mode")]
     MusicStop,
+    #[structopt(about = "Presets")]
+    Preset {
+        #[structopt(possible_values = &presets::Preset::variants(), case_insensitive = true)]
+        preset: presets::Preset,
+    },
 }
 
 #[derive(Debug, StructOpt)]
@@ -254,6 +259,7 @@ fn main() {
             bulb.set_music(yeelight::MusicAction::On, yeelight::QuotedString(host), port)
         }
         Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, yeelight::QuotedString("".to_string()), 0),
+        Command::Preset{ preset } => presets::apply(bulb, preset),
     }
     .unwrap();
 

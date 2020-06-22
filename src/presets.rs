@@ -1,0 +1,251 @@
+use yeelight::{FlowExpresion, FlowTuple};
+
+use structopt::clap::arg_enum;
+
+arg_enum! {
+    #[derive(Debug)]
+    pub enum Preset {
+        Candle,
+        Reading,
+        NightReading,
+        CosyHome,
+        Romantic,
+        Birthday,
+        DateNight,
+        Teatime,
+        PcMode,
+        Concentration,
+        Movie,
+        Night,
+        Notify,
+        Notify2,
+
+        PulseRed,
+        PulseBlue,
+        PulseGreen,
+
+        Red,
+        Green,
+        Blue,
+
+        Police,
+        Police2,
+        Disco,
+        Temp,
+    }
+}
+
+enum PresetValue {
+    RGB(u32, u8),
+    HSV(u16, u8, u8),
+    CT(u16, u8),
+    Flow(yeelight::FlowExpresion, u8, yeelight::CfAction),
+}
+
+pub fn apply(
+    bulb: yeelight::Bulb,
+    preset: Preset,
+) -> std::result::Result<yeelight::Response, std::io::Error> {
+    use Preset::*;
+    let red = 0xFF_00_00;
+    let green = 0x00_FF_00;
+    let blue = 0x00_00_FF;
+    match preset {
+        Candle => send(bulb, candle()),
+        Reading => send(bulb, reading()),
+        NightReading => send(bulb, night_reading()),
+        CosyHome => send(bulb, cosy_home()),
+        Romantic => send(bulb, romantic()),
+        Birthday => send(bulb, birthday()),
+        DateNight => send(bulb, date_night()),
+        Teatime => send(bulb, teatime()),
+        PcMode => send(bulb, pc_mode()),
+        Concentration => send(bulb, concentration()),
+        Movie => send(bulb, movie()),
+        Night => send(bulb, night()),
+        Notify => send(bulb, notify()),
+        Notify2 => send(bulb, notify2()),
+
+        Red => send(bulb, PresetValue::RGB(red, 100)),
+        Green => send(bulb, PresetValue::RGB(green, 100)),
+        Blue => send(bulb, PresetValue::RGB(blue, 100)),
+
+        PulseRed => send(bulb, pulse(red, 100, 250)),
+        PulseGreen => send(bulb, pulse(green, 100, 250)),
+        PulseBlue => send(bulb, pulse(blue, 100, 250)),
+        Police => send(bulb, police(100)),
+        Police2 => send(bulb, police2(100)),
+        Disco => send(bulb, disco(120)),
+        Temp => send(bulb, temp(2600, 5000, 100)),
+    }
+}
+
+fn send(
+    mut bulb: yeelight::Bulb,
+    preset: PresetValue,
+) -> std::result::Result<yeelight::Response, std::io::Error> {
+    match preset {
+        PresetValue::Flow(expression, count, action) => bulb.start_cf(count, action, expression),
+        PresetValue::RGB(color, bright) => {
+            bulb.set_scene(yeelight::Class::Color, color.into(), bright.into(), 0)
+        }
+        PresetValue::HSV(hue, sat, bright) => {
+            bulb.set_scene(yeelight::Class::HSV, hue.into(), sat.into(), bright.into())
+        }
+        PresetValue::CT(ct, bright) => {
+            bulb.set_scene(yeelight::Class::CT, ct.into(), bright.into(), 0)
+        }
+    }
+}
+
+fn disco(bpm: u64) -> PresetValue {
+    let duration = 60_000 / bpm;
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(duration, 0xFF_00_00, 100),
+        FlowTuple::rgb(duration, 0xFF_00_00, 1),
+        FlowTuple::rgb(duration, 0x80_FF_00, 100),
+        FlowTuple::rgb(duration, 0x80_FF_00, 1),
+        FlowTuple::rgb(duration, 0x00_FF_FF, 100),
+        FlowTuple::rgb(duration, 0x00_FF_FF, 1),
+        FlowTuple::rgb(duration, 0x80_00_FF, 100),
+        FlowTuple::rgb(duration, 0x80_00_FF, 1),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn temp(a: u32, b: u32, brightness: i8) -> PresetValue {
+    let duration = 40_000;
+    let expr = FlowExpresion(vec![
+        FlowTuple::ct(duration, a, brightness),
+        FlowTuple::ct(duration, b, brightness),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn pulse(rgb: u32, brightness: i8, duration: u64) -> PresetValue {
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(duration, rgb, brightness),
+        FlowTuple::rgb(duration, rgb, 1),
+    ]);
+    PresetValue::Flow(expr, 2, yeelight::CfAction::Recover)
+}
+
+fn police(brightness: i8) -> PresetValue {
+    let duration = 300;
+    let (red, blue) = (0xFF_00_00, 0x00_00_FF);
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(duration, red, brightness),
+        FlowTuple::rgb(duration, blue, brightness),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn police2(brightness: i8) -> PresetValue {
+    let duration = 300;
+    let (red, blue) = (0xFF_00_00, 0x00_00_FF);
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(duration, red, brightness),
+        FlowTuple::rgb(duration, red, 1),
+        FlowTuple::rgb(duration, red, brightness),
+        FlowTuple::sleep(duration),
+        FlowTuple::rgb(duration, blue, brightness),
+        FlowTuple::rgb(duration, blue, 1),
+        FlowTuple::rgb(duration, blue, brightness),
+        FlowTuple::sleep(duration),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn candle() -> PresetValue {
+    let ct = 2700;
+    let expr = FlowExpresion(vec![
+        FlowTuple::ct(800, ct, 50),
+        FlowTuple::ct(800, ct, 30),
+        FlowTuple::ct(1200, ct, 80),
+        FlowTuple::ct(800, ct, 60),
+        FlowTuple::ct(1200, ct, 90),
+        FlowTuple::ct(2400, ct, 50),
+        FlowTuple::ct(1200, ct, 80),
+        FlowTuple::ct(800, ct, 60),
+        FlowTuple::ct(400, ct, 70),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+fn reading() -> PresetValue {
+    PresetValue::CT(3500, 100)
+}
+fn night_reading() -> PresetValue {
+    PresetValue::CT(4000, 40)
+}
+
+fn cosy_home() -> PresetValue {
+    PresetValue::CT(2700, 80)
+}
+
+fn romantic() -> PresetValue {
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(4000, 0x59_15_6D, 1),
+        FlowTuple::rgb(4000, 0x66_14_2A, 1),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn birthday() -> PresetValue {
+    let expr = FlowExpresion(vec![
+        FlowTuple::rgb(1996, 0xDC_50_19, 80),
+        FlowTuple::rgb(1996, 0xDC_78_1E, 80),
+        FlowTuple::rgb(1996, 0xAA_32_14, 80),
+    ]);
+    PresetValue::Flow(expr, 0, yeelight::CfAction::Stay)
+}
+
+fn date_night() -> PresetValue {
+    PresetValue::HSV(24, 100, 50)
+}
+
+fn teatime() -> PresetValue {
+    PresetValue::CT(3000, 50)
+}
+
+fn pc_mode() -> PresetValue {
+    PresetValue::CT(2700, 30)
+}
+fn concentration() -> PresetValue {
+    PresetValue::CT(5000, 100)
+}
+
+fn movie() -> PresetValue {
+    PresetValue::HSV(240, 60, 50)
+}
+
+fn night() -> PresetValue {
+    PresetValue::HSV(36, 100, 1)
+}
+
+fn notify() -> PresetValue {
+    let duration = 300;
+    let temp = 5000;
+    let expr = FlowExpresion(vec![
+        FlowTuple::ct(duration, temp, 100),
+        FlowTuple::ct(duration, temp, 1),
+        FlowTuple::ct(duration, temp, 100),
+        FlowTuple::ct(duration, temp, 1),
+        FlowTuple::ct(duration, temp, 100),
+        FlowTuple::ct(duration, temp, 1),
+    ]);
+    let len = &expr.0.len();
+    PresetValue::Flow(expr, *len as u8, yeelight::CfAction::Recover)
+}
+
+fn notify2() -> PresetValue {
+    let duration = 200;
+    let temp = 5000;
+    let expr = FlowExpresion(vec![
+        FlowTuple::ct(duration, temp, 100),
+        FlowTuple::ct(duration, temp, 1),
+        FlowTuple::ct(duration, temp, 100),
+        FlowTuple::ct(duration, temp, 1),
+    ]);
+    let len = &expr.0.len();
+    PresetValue::Flow(expr, *len as u8, yeelight::CfAction::Recover)
+}
