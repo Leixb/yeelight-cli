@@ -181,24 +181,25 @@ enum Prop {
 macro_rules! sel_bg {
     ($obj:tt.$fn:ident ($($p:expr),*) || $fn_bg:ident if $var:tt ) => (
         if $var {
-            $obj.$fn_bg($($p),*)
+            $obj.$fn_bg($($p),*).await
         } else {
-            $obj.$fn($($p),*)
+            $obj.$fn($($p),*).await
         }
     );
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let opt = Options::from_args();
 
-    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port).unwrap();
+    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port).await.unwrap();
 
     let response = match opt.subcommand {
         Command::Toggle{bg, dev} => {
             match (bg, dev) {
-                (true, _) => bulb.bg_toggle(),
-                (_, true) => bulb.dev_toggle(),
-                _ => bulb.toggle(),
+                (true, _) => bulb.bg_toggle().await,
+                (_, true) => bulb.dev_toggle().await,
+                _ => bulb.toggle().await,
             }
         },
         Command::On {
@@ -213,7 +214,7 @@ fn main() {
             mode,
             bg,
         } => sel_bg!(bulb.set_power(yeelight::Power::Off, effect, duration, mode) || bg_set_power if bg),
-        Command::Get { properties } => bulb.get_prop(&yeelight::Properties(properties)),
+        Command::Get { properties } => bulb.get_prop(&yeelight::Properties(properties)).await,
         Command::Set {
             property,
             effect,
@@ -224,7 +225,7 @@ fn main() {
             Prop::RGB { rgb_value, bg} => sel_bg!(bulb.set_rgb(rgb_value, effect, duration) || bg_set_rgb if bg),
             Prop::HSV { hue, sat, bg} => sel_bg!(bulb.set_hsv(hue, sat, effect, duration) || bg_set_hsv if bg),
             Prop::Bright { brightness, bg} => sel_bg!(bulb.set_bright(brightness, effect, duration) || bg_set_bright if bg),
-            Prop::Name { name } => bulb.set_name(yeelight::QuotedString(name)),
+            Prop::Name { name } => bulb.set_name(yeelight::QuotedString(name)).await,
             Prop::Scene {
                 class,
                 val1,
@@ -234,9 +235,9 @@ fn main() {
             } => sel_bg!(bulb.set_scene(class, val1, val2, val3) || bg_set_scene if bg),
             Prop::Default{bg} => sel_bg!(bulb.set_default() || bg_set_default if bg),
         },
-        Command::Timer { minutes } => bulb.cron_add(yeelight::CronType::Off, minutes),
-        Command::TimerClear => bulb.cron_del(yeelight::CronType::Off),
-        Command::TimerGet => bulb.cron_get(yeelight::CronType::Off),
+        Command::Timer { minutes } => bulb.cron_add(yeelight::CronType::Off, minutes).await,
+        Command::TimerClear => bulb.cron_del(yeelight::CronType::Off).await,
+        Command::TimerGet => bulb.cron_get(yeelight::CronType::Off).await,
         Command::Flow {
             count,
             action,
@@ -256,10 +257,10 @@ fn main() {
             yeelight::Prop::CT => sel_bg!(bulb.adjust_ct(percent, duration) || bg_adjust_ct if bg),
         },
         Command::MusicConnect { host, port } => {
-            bulb.set_music(yeelight::MusicAction::On, yeelight::QuotedString(host), port)
+            bulb.set_music(yeelight::MusicAction::On, yeelight::QuotedString(host), port).await
         }
-        Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, yeelight::QuotedString("".to_string()), 0),
-        Command::Preset{ preset } => presets::apply(bulb, preset),
+        Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, yeelight::QuotedString("".to_string()), 0).await,
+        Command::Preset{ preset } => presets::apply(bulb, preset).await,
     }
     .unwrap();
 

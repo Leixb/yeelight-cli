@@ -42,58 +42,58 @@ enum PresetValue {
     Flow(yeelight::FlowExpresion, u8, yeelight::CfAction),
 }
 
-pub fn apply(
+pub async fn apply(
     bulb: yeelight::Bulb,
     preset: Preset,
-) -> std::result::Result<yeelight::Response, std::io::Error> {
+) -> Option<yeelight::Response> {
     use Preset::*;
     let red = 0xFF_00_00;
     let green = 0x00_FF_00;
     let blue = 0x00_00_FF;
     match preset {
-        Candle => send(bulb, candle()),
-        Reading => send(bulb, reading()),
-        NightReading => send(bulb, night_reading()),
-        CosyHome => send(bulb, cosy_home()),
-        Romantic => send(bulb, romantic()),
-        Birthday => send(bulb, birthday()),
-        DateNight => send(bulb, date_night()),
-        Teatime => send(bulb, teatime()),
-        PcMode => send(bulb, pc_mode()),
-        Concentration => send(bulb, concentration()),
-        Movie => send(bulb, movie()),
-        Night => send(bulb, night()),
-        Notify => send(bulb, notify()),
-        Notify2 => send(bulb, notify2()),
+        Candle => send(bulb, candle()).await,
+        Reading => send(bulb, reading()).await,
+        NightReading => send(bulb, night_reading()).await,
+        CosyHome => send(bulb, cosy_home()).await,
+        Romantic => send(bulb, romantic()).await,
+        Birthday => send(bulb, birthday()).await,
+        DateNight => send(bulb, date_night()).await,
+        Teatime => send(bulb, teatime()).await,
+        PcMode => send(bulb, pc_mode()).await,
+        Concentration => send(bulb, concentration()).await,
+        Movie => send(bulb, movie()).await,
+        Night => send(bulb, night()).await,
+        Notify => send(bulb, notify()).await,
+        Notify2 => send(bulb, notify2()).await,
 
-        Red => send(bulb, PresetValue::RGB(red, 100)),
-        Green => send(bulb, PresetValue::RGB(green, 100)),
-        Blue => send(bulb, PresetValue::RGB(blue, 100)),
+        Red => send(bulb, PresetValue::RGB(red, 100)).await,
+        Green => send(bulb, PresetValue::RGB(green, 100)).await,
+        Blue => send(bulb, PresetValue::RGB(blue, 100)).await,
 
-        PulseRed => send(bulb, pulse(red, 100, 250)),
-        PulseGreen => send(bulb, pulse(green, 100, 250)),
-        PulseBlue => send(bulb, pulse(blue, 100, 250)),
-        Police => send(bulb, police(100)),
-        Police2 => send(bulb, police2(100)),
-        Disco => send(bulb, disco(120)),
-        Temp => send(bulb, temp(2600, 5000, 100)),
+        PulseRed => send(bulb, pulse(red, 100, 250)).await,
+        PulseGreen => send(bulb, pulse(green, 100, 250)).await,
+        PulseBlue => send(bulb, pulse(blue, 100, 250)).await,
+        Police => send(bulb, police(100)).await,
+        Police2 => send(bulb, police2(100)).await,
+        Disco => send(bulb, disco(120)).await,
+        Temp => send(bulb, temp(2600, 5000, 100)).await,
     }
 }
 
-fn send(
+async fn send(
     mut bulb: yeelight::Bulb,
     preset: PresetValue,
-) -> std::result::Result<yeelight::Response, std::io::Error> {
+) -> Option<yeelight::Response> {
     match preset {
-        PresetValue::Flow(expression, count, action) => bulb.start_cf(count, action, expression),
+        PresetValue::Flow(expression, count, action) => bulb.start_cf(count, action, expression).await,
         PresetValue::RGB(color, bright) => {
-            bulb.set_scene(yeelight::Class::Color, color.into(), bright.into(), 0)
+            bulb.set_scene(yeelight::Class::Color, color.into(), bright.into(), 0).await
         }
         PresetValue::HSV(hue, sat, bright) => {
-            bulb.set_scene(yeelight::Class::HSV, hue.into(), sat.into(), bright.into())
+            bulb.set_scene(yeelight::Class::HSV, hue.into(), sat.into(), bright.into()).await
         }
         PresetValue::CT(ct, bright) => {
-            bulb.set_scene(yeelight::Class::CT, ct.into(), bright.into(), 0)
+            bulb.set_scene(yeelight::Class::CT, ct.into(), bright.into(), 0).await
         }
     }
 }
