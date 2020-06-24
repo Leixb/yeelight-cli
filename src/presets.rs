@@ -42,10 +42,7 @@ enum PresetValue {
     Flow(yeelight::FlowExpresion, u8, yeelight::CfAction),
 }
 
-pub async fn apply(
-    bulb: yeelight::Bulb,
-    preset: Preset,
-) -> Option<yeelight::Response> {
+pub async fn apply(bulb: yeelight::Bulb, preset: Preset) -> Option<yeelight::Response> {
     use Preset::*;
     let red = 0xFF_00_00;
     let green = 0x00_FF_00;
@@ -80,20 +77,22 @@ pub async fn apply(
     }
 }
 
-async fn send(
-    mut bulb: yeelight::Bulb,
-    preset: PresetValue,
-) -> Option<yeelight::Response> {
+async fn send(mut bulb: yeelight::Bulb, preset: PresetValue) -> Option<yeelight::Response> {
     match preset {
-        PresetValue::Flow(expression, count, action) => bulb.start_cf(count, action, expression).await,
+        PresetValue::Flow(expression, count, action) => {
+            bulb.start_cf(count, action, expression).await
+        }
         PresetValue::RGB(color, bright) => {
-            bulb.set_scene(yeelight::Class::Color, color.into(), bright.into(), 0).await
+            bulb.set_scene(yeelight::Class::Color, color.into(), bright.into(), 0)
+                .await
         }
         PresetValue::HSV(hue, sat, bright) => {
-            bulb.set_scene(yeelight::Class::HSV, hue.into(), sat.into(), bright.into()).await
+            bulb.set_scene(yeelight::Class::HSV, hue.into(), sat.into(), bright.into())
+                .await
         }
         PresetValue::CT(ct, bright) => {
-            bulb.set_scene(yeelight::Class::CT, ct.into(), bright.into(), 0).await
+            bulb.set_scene(yeelight::Class::CT, ct.into(), bright.into(), 0)
+                .await
         }
     }
 }

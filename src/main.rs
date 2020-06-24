@@ -5,6 +5,8 @@ use structopt::{
     StructOpt,
 };
 
+use tokio::sync::mpsc;
+
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "yeelight-cli",
@@ -63,7 +65,9 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Start timer")]
-    Timer { minutes: u64 },
+    Timer {
+        minutes: u64,
+    },
     #[structopt(about = "Clear current timer")]
     TimerClear,
     #[structopt(about = "Get remaining minutes for timer")]
@@ -115,7 +119,10 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Connect to music TCP stream")]
-    MusicConnect { host: String, port: u32 },
+    MusicConnect {
+        host: String,
+        port: u32,
+    },
     #[structopt(about = "Stop music mode")]
     MusicStop,
     #[structopt(about = "Presets")]
@@ -123,6 +130,8 @@ enum Command {
         #[structopt(possible_values = &presets::Preset::variants(), case_insensitive = true)]
         preset: presets::Preset,
     },
+    #[structopt(about = "Listen to notifications from lamp")]
+    Listen,
 }
 
 #[derive(Debug, StructOpt)]
@@ -192,7 +201,9 @@ macro_rules! sel_bg {
 async fn main() {
     let opt = Options::from_args();
 
-    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port).await.unwrap();
+    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port)
+        .await
+        .unwrap();
 
     let response = match opt.subcommand {
         Command::Toggle{bg, dev} => {
@@ -261,6 +272,18 @@ async fn main() {
         }
         Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, yeelight::QuotedString("".to_string()), 0).await,
         Command::Preset{ preset } => presets::apply(bulb, preset).await,
+        Command::Listen => {
+            let (sender, mut recv) = mpsc::channel(10);
+
+            bulb.set_notify(sender).await;
+
+            while let Some(yeelight::Notification(i)) = recv.recv().await {
+                for (k, v) in i.iter() {
+                    println!("{} {}", k, v);
+                }
+            }
+            Some(yeelight::Response::Result(vec![]))
+        }
     }
     .unwrap();
 
