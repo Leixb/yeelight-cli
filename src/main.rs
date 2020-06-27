@@ -117,7 +117,7 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Connect to music TCP stream")]
-    MusicConnect { host: String, port: u32 },
+    MusicConnect { host: String, port: u16 },
     #[structopt(about = "Stop music mode")]
     MusicStop,
     #[structopt(about = "Presets")]
@@ -141,7 +141,7 @@ enum Prop {
         bg: bool,
     },
     CT {
-        color_temperature: u64,
+        color_temperature: u16,
         #[structopt(long)]
         bg: bool,
     },
