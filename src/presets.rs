@@ -1,4 +1,4 @@
-use yeelight::{FlowExpresion, FlowTuple};
+use yeelight::{BulbError, FlowExpresion, FlowTuple, Response};
 
 use structopt::clap::arg_enum;
 
@@ -42,7 +42,7 @@ enum PresetValue {
     Flow(yeelight::FlowExpresion, u8, yeelight::CfAction),
 }
 
-pub async fn apply(bulb: yeelight::Bulb, preset: Preset) -> Option<yeelight::Response> {
+pub async fn apply(bulb: yeelight::Bulb, preset: Preset) -> Result<Option<Response>, BulbError> {
     use Preset::*;
     let red = 0xFF_00_00;
     let green = 0x00_FF_00;
@@ -77,7 +77,10 @@ pub async fn apply(bulb: yeelight::Bulb, preset: Preset) -> Option<yeelight::Res
     }
 }
 
-async fn send(mut bulb: yeelight::Bulb, preset: PresetValue) -> Option<yeelight::Response> {
+async fn send(
+    mut bulb: yeelight::Bulb,
+    preset: PresetValue,
+) -> Result<Option<Response>, BulbError> {
     match preset {
         PresetValue::Flow(expression, count, action) => {
             bulb.start_cf(count, action, expression).await

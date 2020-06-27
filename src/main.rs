@@ -65,9 +65,7 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Start timer")]
-    Timer {
-        minutes: u64,
-    },
+    Timer { minutes: u64 },
     #[structopt(about = "Clear current timer")]
     TimerClear,
     #[structopt(about = "Get remaining minutes for timer")]
@@ -119,10 +117,7 @@ enum Command {
         bg: bool,
     },
     #[structopt(about = "Connect to music TCP stream")]
-    MusicConnect {
-        host: String,
-        port: u32,
-    },
+    MusicConnect { host: String, port: u32 },
     #[structopt(about = "Stop music mode")]
     MusicStop,
     #[structopt(about = "Presets")]
@@ -282,20 +277,16 @@ async fn main() {
                     println!("{} {}", k, v);
                 }
             }
-            Some(yeelight::Response::Result(vec![]))
+            Ok(None)
         }
     }
     .unwrap();
 
-    match response {
-        yeelight::Response::Result(result) => result.iter().for_each(|x| {
+    if let Some(result) = response {
+        result.iter().for_each(|x| {
             if x != "ok" {
                 println!("{}", x)
             }
-        }),
-        yeelight::Response::Error(code, message) => {
-            eprintln!("Error (code {}): {}", code, message);
-            std::process::exit(code);
-        }
+        });
     }
 }
