@@ -18,6 +18,8 @@ struct Options {
     address: String,
     #[structopt(short, long, default_value = "55443", env = "YEELIGHT_PORT")]
     port: u16,
+    #[structopt(short, long, about = "do not wait for response")]
+    no_response: bool,
     #[structopt(subcommand)]
     subcommand: Command,
 }
@@ -199,6 +201,10 @@ async fn main() {
     let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port)
         .await
         .unwrap();
+
+    if opt.no_response {
+        bulb = bulb.no_response()
+    }
 
     let response = match opt.subcommand {
         Command::Toggle{bg, dev} => {
