@@ -270,7 +270,7 @@ async fn main() {
         },
         Command::MusicConnect { host, port } => {
             bulb.set_music(yeelight::MusicAction::On, &host, port).await
-        }
+        },
         Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, "", 0).await,
         Command::Preset{ preset } => presets::apply(bulb, preset).await,
         Command::Listen => {
@@ -284,7 +284,7 @@ async fn main() {
                 }
             }
             Ok(None)
-        }
+        },
     }
     .unwrap();
 
