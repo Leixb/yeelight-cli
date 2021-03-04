@@ -205,36 +205,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let response = match opt.subcommand {
-        Command::Toggle{bg, dev} => {
-            match (bg, dev) {
-                (true, _) => bulb.bg_toggle().await,
-                (_, true) => bulb.dev_toggle().await,
-                _ => bulb.toggle().await,
-            }
+        Command::Toggle { bg, dev } => match (bg, dev) {
+            (true, _) => bulb.bg_toggle().await,
+            (_, true) => bulb.dev_toggle().await,
+            _ => bulb.toggle().await,
         },
         Command::On {
             effect,
             duration,
             mode,
             bg,
-        } => sel_bg!(bulb.set_power(yeelight::Power::On, effect, duration, mode) || bg_set_power if bg),
+        } => {
+            sel_bg!(bulb.set_power(yeelight::Power::On, effect, duration, mode) || bg_set_power if bg)
+        }
         Command::Off {
             effect,
             duration,
             mode,
             bg,
-        } => sel_bg!(bulb.set_power(yeelight::Power::Off, effect, duration, mode) || bg_set_power if bg),
+        } => {
+            sel_bg!(bulb.set_power(yeelight::Power::Off, effect, duration, mode) || bg_set_power if bg)
+        }
         Command::Get { properties } => bulb.get_prop(&yeelight::Properties(properties)).await,
         Command::Set {
             property,
             effect,
             duration,
         } => match property {
-            Prop::Power { power, mode, bg} => sel_bg!(bulb.set_power(power, effect, duration, mode) || bg_set_power if bg),
-            Prop::CT { color_temperature, bg} => sel_bg!(bulb.set_ct_abx(color_temperature, effect, duration) || bg_set_ct_abx if bg),
-            Prop::RGB { rgb_value, bg} => sel_bg!(bulb.set_rgb(rgb_value, effect, duration) || bg_set_rgb if bg),
-            Prop::HSV { hue, sat, bg} => sel_bg!(bulb.set_hsv(hue, sat, effect, duration) || bg_set_hsv if bg),
-            Prop::Bright { brightness, bg} => sel_bg!(bulb.set_bright(brightness, effect, duration) || bg_set_bright if bg),
+            Prop::Power { power, mode, bg } => {
+                sel_bg!(bulb.set_power(power, effect, duration, mode) || bg_set_power if bg)
+            }
+            Prop::CT {
+                color_temperature,
+                bg,
+            } => {
+                sel_bg!(bulb.set_ct_abx(color_temperature, effect, duration) || bg_set_ct_abx if bg)
+            }
+            Prop::RGB { rgb_value, bg } => {
+                sel_bg!(bulb.set_rgb(rgb_value, effect, duration) || bg_set_rgb if bg)
+            }
+            Prop::HSV { hue, sat, bg } => {
+                sel_bg!(bulb.set_hsv(hue, sat, effect, duration) || bg_set_hsv if bg)
+            }
+            Prop::Bright { brightness, bg } => {
+                sel_bg!(bulb.set_bright(brightness, effect, duration) || bg_set_bright if bg)
+            }
             Prop::Name { name } => bulb.set_name(&name).await,
             Prop::Scene {
                 class,
@@ -243,7 +258,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 val3,
                 bg,
             } => sel_bg!(bulb.set_scene(class, val1, val2, val3) || bg_set_scene if bg),
-            Prop::Default{bg} => sel_bg!(bulb.set_default() || bg_set_default if bg),
+            Prop::Default { bg } => sel_bg!(bulb.set_default() || bg_set_default if bg),
         },
         Command::Timer { minutes } => bulb.cron_add(yeelight::CronType::Off, minutes).await,
         Command::TimerClear => bulb.cron_del(yeelight::CronType::Off).await,
@@ -255,22 +270,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             bg,
         } => sel_bg!(bulb.start_cf(count, action, expression) || bg_start_cf if bg),
         Command::FlowStop { bg } => sel_bg!(bulb.stop_cf() || bg_stop_cf if bg),
-        Command::Adjust { action, property, bg } => sel_bg!(bulb.set_adjust(action, property) || bg_set_adjust if bg),
+        Command::Adjust {
+            action,
+            property,
+            bg,
+        } => sel_bg!(bulb.set_adjust(action, property) || bg_set_adjust if bg),
         Command::AdjustPercent {
             property,
             percent,
             duration,
             bg,
         } => match property {
-            yeelight::Prop::Bright => sel_bg!(bulb.adjust_bright(percent, duration) || bg_adjust_bright if bg),
-            yeelight::Prop::Color => sel_bg!(bulb.adjust_color(percent, duration) || bg_adjust_color if bg),
+            yeelight::Prop::Bright => {
+                sel_bg!(bulb.adjust_bright(percent, duration) || bg_adjust_bright if bg)
+            }
+            yeelight::Prop::Color => {
+                sel_bg!(bulb.adjust_color(percent, duration) || bg_adjust_color if bg)
+            }
             yeelight::Prop::CT => sel_bg!(bulb.adjust_ct(percent, duration) || bg_adjust_ct if bg),
         },
         Command::MusicConnect { host, port } => {
             bulb.set_music(yeelight::MusicAction::On, &host, port).await
-        },
+        }
         Command::MusicStop => bulb.set_music(yeelight::MusicAction::Off, "", 0).await,
-        Command::Preset{ preset } => presets::apply(bulb, preset).await,
+        Command::Preset { preset } => presets::apply(bulb, preset).await,
         Command::Listen => {
             let (sender, mut recv) = mpsc::channel(10);
 
