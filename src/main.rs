@@ -195,12 +195,10 @@ macro_rules! sel_bg {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Options::from_args();
 
-    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port)
-        .await
-        .unwrap();
+    let mut bulb = yeelight::Bulb::connect(&opt.address, opt.port).await?;
 
     if opt.no_response {
         bulb = bulb.no_response()
@@ -284,9 +282,8 @@ async fn main() {
                 }
             }
             Ok(None)
-        },
-    }
-    .unwrap();
+        }
+    }?;
 
     if let Some(result) = response {
         result.iter().for_each(|x| {
@@ -295,4 +292,6 @@ async fn main() {
             }
         });
     }
+
+    Ok(())
 }
