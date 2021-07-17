@@ -12,9 +12,9 @@ keywords = ["yeelight", "iot", "cli"]
 categories = ["command-line-interface"]
 
 [dependencies]
-yeelight = { path = "../yeelight", version="0.3.0", features = ["from-str"]}
-structopt = "0.3.15"
-tokio = { version="0.2.21", features = ["macros"] }
+yeelight = { path = "../yeelight", version="0.3.0", features = ["full"]}
+structopt = "~0.3.15"
+tokio = { version="~0.2.21", features = ["macros"] }
 
 [badges]
 maintenance = { status="actively-developed" }

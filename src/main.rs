@@ -1,5 +1,7 @@
 mod presets;
 
+use std::collections::HashSet;
+
 use structopt::{
     clap::{AppSettings, ArgGroup},
     StructOpt,
@@ -129,6 +131,11 @@ enum Command {
     },
     #[structopt(about = "Listen to notifications from lamp")]
     Listen,
+    #[structopt(about = "Search for lights in current network")]
+    Discover {
+        #[structopt(default_value = "1000")]
+        duration: u64,
+    }
 }
 
 #[derive(Debug, StructOpt)]
@@ -303,6 +310,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 for (k, v) in i.iter() {
                     println!("{} {}", k, v);
                 }
+            }
+            Ok(None)
+        }
+        Command::Discover{duration} => {
+            let mut channel = yeelight::discover::find_bulbs().await.unwrap();
+
+            let mut found = HashSet::new();
+
+            while let Some(dbulb) = channel.recv().await {
+                if found.contains(&dbulb.uid) {
+                    continue;
+                }
+                println!("{} {:?} {:?}", dbulb.uid, dbulb.response_address, dbulb.properties);
+
+                found.insert(dbulb.uid);
             }
             Ok(None)
         }
