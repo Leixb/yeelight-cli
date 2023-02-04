@@ -14,7 +14,7 @@ categories = ["command-line-interface"]
 [dependencies]
 yeelight = { version="0.3.0", features = ["from-str"]}
 structopt = "0.3.15"
-tokio = { version="0.2.21", features = ["macros"] }
+tokio = { version="1.18.5", features = ["macros"] }
 
 [badges]
 maintenance = { status="actively-developed" }
